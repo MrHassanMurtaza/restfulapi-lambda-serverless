@@ -15,3 +15,6 @@ I'm using serverless framework for this project. This is the demo project that I
     "active":
 }
 ```
+
+### License
+I don't care. You can use it the way you want.
