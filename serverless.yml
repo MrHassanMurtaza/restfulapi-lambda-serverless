@@ -1,0 +1,84 @@
+
+service: nodejs-restful
+
+custom:
+  settings:
+    TABLE_NAME: books
+
+provider:
+  name: aws
+  apiKeys:
+  - myFirstKey
+  runtime: nodejs10.x
+  environment: ${self:custom.settings}
+  region: us-east-2
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Scan
+        - dynamodb:Query
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+      - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.settings.TABLE_NAME}"
+
+functions:
+  createBook:
+    handler: handler.createBook
+    events:
+      - http:
+          path: /book
+          method: post
+          private: true
+  getAllBooks:
+    handler: handler.getAllBooks
+    events:
+      - http:
+          path: /books
+          method: get
+          private: true
+  getBookByIdIsbn:
+    handler: handler.getBookByIdIsbn
+    events:
+      - http:
+          path: /book/{id}/{isbn}
+          method: get
+          private: true
+  updateBook:
+    handler: handler.updateBook
+    events:
+      - http:
+          path: /book/{id}
+          method: put
+          private: true
+  deleteBook:
+    handler: handler.deleteBook
+    events:
+      - http:
+          path: /book/{id}
+          method: delete
+          private: true
+
+resources: 
+  Resources:
+    SellBooks:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: user_id
+            AttributeType: 'S'
+          - AttributeName: isbn
+            AttributeType: 'S'
+        KeySchema: 
+          - AttributeName: user_id
+            KeyType: 'HASH'
+          - AttributeName: isbn
+            KeyType: 'RANGE'
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.settings.TABLE_NAME}
+  
